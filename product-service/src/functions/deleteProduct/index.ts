@@ -8,6 +8,7 @@ export default {
       http: {
         method: 'delete',
         path: 'product',
+        cors: true,
         request: {
           schemas: {
             'application/json': productScheme,

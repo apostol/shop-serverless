@@ -3,9 +3,9 @@ import { middyfy } from '@libs/lambda';
 import ProductRepository from 'src/repository/productRepository';
 
 const getProductsList: any = async (event) => {
-  let list = await new ProductRepository().list()
+  let books = await new ProductRepository().list()
   return formatJSONResponse({
-    list,
+    books,
     event,
   });
 };

@@ -28,7 +28,7 @@ const serverlessConfiguration: AWS = {
       PG_HOST: '${opt:pg_host, "qb-base.cuiavnuwfd3p.eu-west-1.rds.amazonaws.com"}',
       PG_PORT: '${opt:pg_port, "5432"}',
       PG_USERNAME: '${opt:pg_username, "postgres"}',
-      PG_PASSWORD: '${opt:pg_password, ""}',
+      PG_PASSWORD: '${env:PG_PASSWORD, ""}',
       PG_DATABASE: '${opt:pg_database, "questbooks"}',
     },
   },
@@ -60,6 +60,24 @@ const serverlessConfiguration: AWS = {
       concurrency: 10,
     },
   },
+  resources: {
+		Resources: {
+			GatewayResponseDefault4XX: {
+				Type: "AWS::ApiGateway::GatewayResponse",
+				Properties: {
+					ResponseParameters: {
+						'gatewayresponse.header.Access-Control-Allow-Origin': "'*'",
+						'gatewayresponse.header.Access-Control-Allow-Headers': "'*'",
+            'gatewayresponse.header.Access-Control-Allow-Methods': "'*'"
+					},
+					ResponseType: "DEFAULT_4XX",
+					RestApiId: {
+						Ref: "ApiGatewayRestApi"
+					}
+				}
+			}
+		}
+	},
 };
 
 module.exports = serverlessConfiguration;

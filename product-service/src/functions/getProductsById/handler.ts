@@ -7,7 +7,6 @@ const getProductsById: any = async (event) => {
   try{
     let item = await new ProductRepository().readById(event.pathParameters.id)
     result = formatJSONResponse({
-      message: "ok",
       id: event.pathParameters.id,
       product: item
     });

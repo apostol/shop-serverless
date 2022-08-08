@@ -8,6 +8,7 @@ export const productScheme = {
     description: { type: 'string' },
     price: { type: 'number' },
     title: { type: 'string' },
+    category_id: { type: 'number' }
   },
 } as const;
 

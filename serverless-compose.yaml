@@ -1,9 +1,0 @@
-services:
-  provider:
-    name: aws
-
-  product-service:
-    path: product-service
- 
-  import-service:
-    path: import-service

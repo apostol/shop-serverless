@@ -6,7 +6,26 @@ export default {
     {
       http: {
         method: 'get',
-        path: 'product'
+        path: 'product',
+        cors: true,
+        // cors: {
+        //   origin: '*',
+        //   headers: [
+        //     "Content-Type",
+        //     "X-Amz-Date",
+        //     "Authorization",
+        //     "X-Api-Key",
+        //     "X-Amz-Security-Token"
+        //   ]
+        // },
+        // private: true,
+        // async: true,
+        // response: {
+        //   headers: {
+        //     "Access-Control-Allow-Origin": "'*'",
+        //     "Access-Control-Allow-Methods": "'*'"
+        //   }
+        // }
       },
     },
   ],
