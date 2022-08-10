@@ -1,5 +1,4 @@
-import { handlerPath } from '@libs/handler-resolver';
-import { productScheme } from 'src/model/product.schema';
+import { handlerPath } from '@utils/handler-resolver.util';
 
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
@@ -9,11 +8,7 @@ export default {
         method: 'delete',
         path: 'product',
         cors: true,
-        request: {
-          schemas: {
-            'application/json': productScheme,
-          },
-        },
+        
       },
     },
   ],

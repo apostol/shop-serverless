@@ -1,5 +1,4 @@
-import { productScheme } from '../../model/product.schema';
-import { handlerPath } from '@libs/handler-resolver';
+import { handlerPath } from '@utils/handler-resolver.util';
 
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
@@ -8,11 +7,6 @@ export default {
       http: {
         method: 'put',
         path: 'product',
-        request: {
-          schemas: {
-            'application/json': productScheme,
-          },
-        },
       },
     },
   ],

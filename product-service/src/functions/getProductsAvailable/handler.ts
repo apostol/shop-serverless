@@ -1,14 +1,9 @@
-import { formatJSONResponse } from '@libs/api-gateway';
-import { middyfy } from '@libs/lambda';
+import { ValidatedEventAPIGatewayProxyEvent } from '@utils/api-gateway';
+import { middyfy } from '@utils/lambda.util';
 import ProductRepository from 'src/repository/productRepository';
 
-const getProductsAvailable: any = async (event) => {
-  let books = await new ProductRepository().available()
-  console.log(books)
-  return formatJSONResponse({
-    books,
-    event,
-  });
+const getProductsAvailable: ValidatedEventAPIGatewayProxyEvent<any> = async (event) => {
+  return await new ProductRepository().available()
 };
 
 export const main = middyfy(getProductsAvailable);

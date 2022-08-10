@@ -1,6 +1,8 @@
 import type { AWS } from '@serverless/typescript';
 
 import getProductsList from '@functions/getProductsList';
+import ProductSchema from 'src/models/product.schema.json';
+import CategorySchema from 'src/models/category.schema.json';
 import createProduct from '@functions/createProduct';
 import deleteProduct from '@functions/deleteProduct';
 import getProductsAvailable from '@functions/getProductsAvailable';
@@ -10,8 +12,13 @@ import updateProduct from '@functions/updateProduct';
 const serverlessConfiguration: AWS = {
   service: 'productService',
   frameworkVersion: '3',
-  configValidationMode: 'error',
-  plugins: ['serverless-esbuild'],
+  configValidationMode: 'off',
+  plugins: [
+    'serverless-esbuild',
+    'serverless-auto-swagger',
+    '@martinsson/serverless-openapi-documentation',
+    'serverless-offline'
+  ],
   provider: {
     name: 'aws',
     runtime: 'nodejs14.x',
@@ -49,6 +56,9 @@ const serverlessConfiguration: AWS = {
       prod: 'free',
       dev: 'free'
     },
+    "serverless-offline": {
+      httpPort: 4000,
+    },
     esbuild: {
       bundle: true,
       minify: true,
@@ -59,6 +69,30 @@ const serverlessConfiguration: AWS = {
       platform: 'node',
       concurrency: 10,
     },
+    documentation: {
+      version: '1',
+      title: 'QuestBook REST API',
+      description: 'QuestBook REST API',
+      models: [
+          ProductSchema,
+          CategorySchema,
+      ]
+    },
+    autoswagger: {
+      apiType: 'http',
+      generateSwaggerOnDeploy: true,
+      typefiles: [
+        './types/src/model/product.schema.d.ts'
+      ],
+//      swaggerFiles: ['./doc/openAPI.json'],
+      swaggerPath: 'swagger',
+//      apiKeyHeaders: ['Authorization', 'anyOtherName']
+//      useStage: true,
+//      basePath: '/',
+//      host: 'http://some-host',
+      schemes: ['https'],
+      excludeStages: ['prod']
+    }
   },
   resources: {
 		Resources: {

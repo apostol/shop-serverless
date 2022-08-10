@@ -1,5 +1,5 @@
-import type { Product } from "../model/product.schema"
-import Client from "../db/db_connector"
+import type { Product } from "../models/product.model"
+import Client from "../providers/postgres"
 
 export default class ProductRepository {
 

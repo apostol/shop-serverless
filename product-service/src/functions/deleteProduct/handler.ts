@@ -1,14 +1,13 @@
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-import { formatJSONResponse } from '@libs/api-gateway';
-import { middyfy } from '@libs/lambda';
-import { productScheme } from 'src/model/product.schema';
+import type { ValidatedEventAPIGatewayProxyEvent } from '@utils/api-gateway';
+import { middyfy } from '@utils/lambda.util';
+import { Product } from 'src/models/product.model';
 
 
-const deleteProduct: ValidatedEventAPIGatewayProxyEvent<typeof productScheme> = async (event) => {
-  return formatJSONResponse({
+const deleteProduct: ValidatedEventAPIGatewayProxyEvent<Product> = async (event) => {
+  return {
     message: `Delete product`,
     event,
-  });
+  };
 };
 
 export const main = middyfy(deleteProduct);
