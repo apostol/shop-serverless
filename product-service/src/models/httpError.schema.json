@@ -1,0 +1,14 @@
+{
+  "name": "HttpError",
+  "description": "Error",
+  "contentType": "application/json",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "responseCode": { "type": "number" },
+      "error": { "type": "string" },
+      "message": { "type": "string" }
+    },
+    "required": ["responseCode"]
+  }
+}
