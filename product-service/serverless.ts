@@ -8,9 +8,11 @@ import deleteProduct from '@functions/deleteProduct';
 import getProductsAvailable from '@functions/getProductsAvailable';
 import getProductsById from '@functions/getProductsById';
 import updateProduct from '@functions/updateProduct';
+import catalogBatchProcess from '@functions/catalogBatchProcess';
 
 const serverlessConfiguration: AWS = {
   service: 'productService',
+  useDotenv: true,
   frameworkVersion: '3',
   configValidationMode: 'off',
   plugins: [
@@ -32,12 +34,45 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
-      PG_HOST: '${opt:pg_host, "qb-base.cuiavnuwfd3p.eu-west-1.rds.amazonaws.com"}',
-      PG_PORT: '${opt:pg_port, "5432"}',
-      PG_USERNAME: '${opt:pg_username, "postgres"}',
+      PG_HOST: '${env:PG_HOST, "qb-base.cuiavnuwfd3p.eu-west-1.rds.amazonaws.com"}',
+      PG_PORT: '${env:PG_PORT, "5432"}',
+      PG_USERNAME: '${env:PG_USERNAME, "postgres"}',
       PG_PASSWORD: '${env:PG_PASSWORD, ""}',
-      PG_DATABASE: '${opt:pg_database, "questbooks"}',
+      PG_DATABASE: '${env:PG_DATABASE, "questbooks"}',
+      SNS_ARN: { Ref: 'SNSTopic' }
     },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: "Allow",
+            Action: [ "sns:*" ],
+            Resource: { Ref: "SNSTopic" }
+          }
+        ]
+      }
+    }
+  },
+  resources:{
+    Resources: {
+      SNSTopic: {
+        Type: "AWS::SNS::Topic",
+        Properties: {
+          TopicName: '${self:custom.snsTopic}'
+        }
+      },
+      SNSSubscription: {
+        Type: "AWS::SNS::Subscription",
+        Properties: {
+          Endpoint: 'admin@dpankratov.ru',
+          Protocol: 'email',
+          TopicArn: {
+            Ref: 'SNSTopic'
+          }
+        }
+      },
+    },
+
   },
   // import the function via paths
   functions: {
@@ -46,12 +81,14 @@ const serverlessConfiguration: AWS = {
     deleteProduct,
     getProductsAvailable,
     getProductsById,
-    updateProduct
+    updateProduct,
+    catalogBatchProcess
   },
   package: { individually: true },
   custom: {
     region: '${opt:region, self:provider.region}',
     stage: '${opt:stage, self:provider.stage, ""}',
+    snsTopic: '${env:SNS_TOPIC, "createProductTopic"}',
     profile: {
       prod: 'free',
       dev: 'free'
@@ -94,6 +131,7 @@ const serverlessConfiguration: AWS = {
       excludeStages: ['prod']
     }
   },
+
 };
 
 module.exports = serverlessConfiguration;

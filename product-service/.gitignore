@@ -10,3 +10,6 @@ swagger
 
 # esbuild directories
 .esbuild
+
+#.env files
+.env*

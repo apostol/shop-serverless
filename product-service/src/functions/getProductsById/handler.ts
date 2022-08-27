@@ -5,10 +5,7 @@ import ProductRepository from 'src/repository/productRepository';
 
 const getProductsById: ValidatedEventAPIGatewayProxyEvent<Product> = async (event) => {
   let item = await new ProductRepository().readById(event.pathParameters.id)
-  return {
-    id: event.pathParameters.id,
-    product: item
-  };
+  return item
 };
 
 export const main = middyfy(getProductsById);

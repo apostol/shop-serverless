@@ -5,6 +5,7 @@ import importFileParser from '@functions/importFileParser';
 
 const serverlessConfiguration: AWS = {
   service: 'import-service',
+  useDotenv: true,
   frameworkVersion: '3',
   plugins: ['serverless-esbuild'],
   provider: {
@@ -23,21 +24,42 @@ const serverlessConfiguration: AWS = {
       UPLOAD_BUCKET: '${self:custom.s3ImportServiceBucket}',
       REGION: '${self:provider.region}',
       UPLOAD_FOLDER: '${self:custom.uploadFolder}',
-      PARSED_FOLDER: '${self:custom.parsedFolder}'
+      PARSED_FOLDER: '${self:custom.parsedFolder}',
+      SQS_URL: { Ref: "SQSQueue"}
     },
     iam: {
       role: {
         statements: [
           {
             Effect: "Allow",
-            Action: [ "s3:ListBucket" ],
-            Resource: "arn:aws:s3:::${self:custom.s3ImportServiceBucket}"
+            Action: [ 
+              "s3:ListBucket",
+              "s3:GetBucketLocation"
+            ],
+            Resource: { "Fn::GetAtt": [ "UploadBucket", "Arn" ] }
           },
           {
             Effect: "Allow",
-            Action: [ "s3:*" ],
-            Resource: "arn:aws:s3:::${self:custom.s3ImportServiceBucket}/*"
-          }
+            Action: [ 
+              "s3:GetObject", 
+              "s3:PutObject", 
+              "s3:DeleteObject", 
+              "s3:CopyObject" 
+            ],
+            Resource: { 
+              "Fn::Join":[
+                "",[
+                  {"Fn::GetAtt": ["UploadBucket","Arn"]},
+                  "/*"
+                ]
+              ]
+            }
+          },
+          {
+            Effect: "Allow",
+            Action: [ "sqs:*" ],
+            Resource: { "Fn::GetAtt": [ "SQSQueue", "Arn" ] }
+          },
         ]
       }
     }
@@ -57,6 +79,7 @@ const serverlessConfiguration: AWS = {
     s3ImportServiceBucket: '${env:s3ImportServiceBucket, "smd-isb-vue"}',
     uploadFolder: 'uploaded/',
     parsedFolder: 'parsed/',
+    sqsName: '${env:SQS_NAME, "catalogItemsQueue"}',
     esbuild: {
       bundle: true,
       minify: false,
@@ -70,38 +93,71 @@ const serverlessConfiguration: AWS = {
   },
   resources: {
     Resources: {
-      UploadBucket: {
-        Type: "AWS::S3::Bucket",
-        DeletionPolicy: "Retain",
-        Properties:{
-          BucketName: "${self:custom.s3ImportServiceBucket}"
+      SQSQueue: {
+        Type: "AWS::SQS::Queue",
+        Properties: {
+          QueueName: '${self:custom.sqsName}'
         }
       },
-      BucketPolicyUploadBucket:{
-        Type: 'AWS::S3::BucketPolicy',
-        Properties: {
-          PolicyDocument: {
-            Version: "2012-10-17",
-            Statement: [
-                {
-                  Action: [ "s3:GetObject" ],
-                  Effect: "Allow",
-                  Resource: "arn:aws:s3:::${self:custom.s3ImportServiceBucket}/*",
-                  Principal: "*"
-                }
-            ]
-          },
-          Bucket: {
-            Ref: "UploadBucket"
+      UploadBucket: {
+        Type: "AWS::S3::Bucket",
+        // DeletionPolicy: "Retain",
+        Properties:{
+          BucketName: "${self:custom.s3ImportServiceBucket}",
+          CorsConfiguration: {
+            CorsRules: [{
+              AllowedHeaders: ["*"],
+              AllowedMethods: ["GET", "PUT", "POST", "HEAD", "DELETE"],
+              AllowedOrigins: ["*"]
+            }]
           }
         }
-      }
+      },
+      
+      // BucketPolicyUploadBucket:{
+      //   Type: 'AWS::S3::BucketPolicy',
+      //   Properties: {
+      //     PolicyDocument: {
+      //       Version: "2012-10-17",
+      //       Statement: [
+      //           {
+      //             Action: [
+      //               "s3:GetObject",
+      //               "s3:PutObject",
+      //               "s3:DeleteObject",
+      //               "s3:CopyObject"
+      //             ],
+      //             Effect: "Allow",
+      //             Resource: { 
+      //               "Fn::Join":[
+      //                 "",[
+      //                   {"Fn::GetAtt": ["UploadBucket","Arn"]},
+      //                   "/*"
+      //                 ]
+      //               ]
+      //             },
+      //             Principal: "*"
+      //           }
+      //       ]
+      //     },
+      //     Bucket: {
+      //       Ref: "UploadBucket"
+      //     }
+      //   }
+      // }
     },
     Outputs: {
-      UploadBucketName: {
-        Value: {
-          Ref: "UploadBucket"
-        }
+      QueueName: {
+        Description: "The name of the queue",
+        Value: { "Fn::GetAtt": [ "SQSQueue", "QueueName" ] }
+      },
+      QueueURL: {
+        Description: "The URL of the queue",
+        Value: { Ref: "SQSQueue" }
+      },
+      QueueARN: {
+        Description: "The ARN of the queue",
+        Value: { "Fn::GetAtt": [ "SQSQueue", "Arn" ] }
       }
     }
   },

@@ -8,14 +8,14 @@ export default class ProductRepository {
     let _client;
     try{
       _client = await Client()
-      rows = await _client.query(`INSERT INTO books (id, description, title, category_id) 
-      ($1,$2,$3,$4) RETURNING *`, [item.id, item.description, item.title, item.category_id])      
+      rows = await _client.query(`INSERT INTO books(description, title, category_id)
+      VALUES($1,$2,$3) RETURNING *`, [item.description, item.title, item.category_id])
     }catch(err){
       console.log(err)
     }finally{
       _client.end()
     }
-    return rows?.length == 1?rows[0]:null;
+    return rows?.rowCount == 1?rows.rows[0]:null;
   }
 
   async find(item: Product): Promise<Product[]> {
@@ -39,17 +39,17 @@ export default class ProductRepository {
     return result;
   }
   async readById(id: string): Promise<Product> {
-    let _client
     let rows
+    let _client
     try{
       _client = await Client()
-      rows = await _client.query('SELECT * FROM books WHERE id = $1 limit 1', [id])
+      rows = await _client.query<Product>('SELECT id, description, title, price, count, category_id FROM books b left join store s on b.id = s.book_id WHERE id = $1 limit 1', [id])
     }catch(err){
       console.log(err)
     }finally{
       _client.end()
     }
-    return rows?.length == 1?rows[0]:null;
+    return rows.rowCount == 1?rows.rows[0]:null;
   }
 
   async update(item: Product): Promise<Product> {
@@ -86,7 +86,7 @@ export default class ProductRepository {
     let result:Product[] = [];
     try{
       _client = await Client()
-      const { rows } = await _client.query('SELECT * FROM books', [])
+      const { rows } = await _client.query('SELECT id, description, title, price, count, category_id FROM books b left join store s on b.id = s.book_id', [])
       result = rows as Product[]
     }catch(err){
       console.log(err)
@@ -97,6 +97,17 @@ export default class ProductRepository {
   }
 
   public async available(): Promise<Product[]> {
-    return await this.list();
+    let _client
+    let result:Product[] = [];
+    try{
+      _client = await Client()
+      const { rows } = await _client.query('SELECT id, description, title, price, count, category_id FROM store left join books b on store.book_id = b.id', [])
+      result = rows as Product[]
+    }catch(err){
+      console.log(err)
+    }finally{
+      _client.end()
+    }
+    return result;
   }
 }

@@ -10,10 +10,9 @@ const s3 = new AWS.S3({region: process.env.REGION })
 
 const importProductsFile: Handler<APIGatewayEvent, any> = async (event) => {
   let filename = process.env.UPLOAD_FOLDER + event.queryStringParameters.name
-  console.log(filename)
   const params = {
     Bucket: process.env.UPLOAD_BUCKET,
-    Expires: 60,
+    Expires: 600,
     ContentType: 'text/csv',
     Key: filename
   }
