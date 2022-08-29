@@ -75,11 +75,12 @@ const serverlessConfiguration: AWS = {
     profile: {
       prod: 'free',
       dev: 'free'
-    },    
+    },
     s3ImportServiceBucket: '${env:s3ImportServiceBucket, "smd-isb-vue"}',
     uploadFolder: 'uploaded/',
     parsedFolder: 'parsed/',
     sqsName: '${env:SQS_NAME, "catalogItemsQueue"}',
+    dlqName: '${env:DLQ_NAME, "catalogDLQQueue"}',
     esbuild: {
       bundle: true,
       minify: false,
@@ -96,7 +97,17 @@ const serverlessConfiguration: AWS = {
       SQSQueue: {
         Type: "AWS::SQS::Queue",
         Properties: {
-          QueueName: '${self:custom.sqsName}'
+          QueueName: '${self:custom.sqsName}',
+          RedrivePolicy: {
+            deadLetterTargetArn: {"Fn::GetAtt" : [ 'SQSDLQ' , "Arn" ]},
+            maxReceiveCount: 5
+          }
+        }
+      },
+      SQSDLQ: {
+        Type: "AWS::SQS::Queue",
+        Properties: {
+          QueueName: '${self:custom.dlqName}'
         }
       },
       UploadBucket: {
